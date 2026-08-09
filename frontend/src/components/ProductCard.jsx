@@ -98,10 +98,9 @@ export default function ProductCard({ product }) {
 
   return (
     <>
-      <ProductModal
-        product={isModalOpen ? product : null}
-        onClose={() => setIsModalOpen(false)}
-      />
+      {isModalOpen && (
+        <ProductModal product={product} onClose={() => setIsModalOpen(false)} />
+      )}
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden group">
         <div>

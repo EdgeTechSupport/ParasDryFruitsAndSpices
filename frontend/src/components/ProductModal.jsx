@@ -22,6 +22,18 @@ export default function ProductModal({ product, onClose }) {
 
   const [currentImage, setCurrentImage] = useState(0);
 
+  useEffect(() => {
+    if (!product) return;
+
+    setSelectedWeight(product.variants?.[0]?.weight || "500g");
+
+    setCurrentImage(0);
+  }, [product?.id]);
+
+  if (!product) return null;
+
+  const isWishlisted = isInWishlist(product.id);
+
   const images = product.images?.length
     ? product.images.map((image) => image.url)
     : product.imageUrl
@@ -39,14 +51,6 @@ export default function ProductModal({ product, onClose }) {
       current === 0 ? images.length - 1 : current - 1,
     );
   };
-
-  useEffect(() => {
-    setCurrentImage(0);
-  }, [product?.id]);
-
-  if (!product) return null;
-
-  const isWishlisted = isInWishlist(product.id);
 
   const fallbackWeightOptions = [
     { label: "250g", multiplier: 0.55 },
