@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING_WHATSAPP
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+}
+
+model User {
+  id                   String    @id @default(uuid())
+  name                 String
+  email                String    @unique
+  phone                String
+  password             String
+  role                 Role      @default(CUSTOMER)
+  isEmailVerified      Boolean   @default(false)
+  emailVerificationOtp String?
+  emailVerificationOtpExpires DateTime?
+  emailVerificationOtpAttempts Int @default(0)
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
+  createdAt            DateTime  @default(now())
+  orders               Order[]
+}
+
+model Product {
+  id          String      @id @default(uuid())
+  title       String
+  description String
+  price       Float
+  unit        String // e.g., "1 kg", "500g", "1g"
+  stock       Int         @default(0)
+  imageUrl    String
+  category    String      @default("dry-fruits")
+  isOrganic   Boolean     @default(false)
+  mrp         Float?
+  images      ProductImage[]
+  variants    ProductVariant[]
+  orderItems  OrderItem[]
+  createdAt   DateTime    @default(now())
+}
+
+model ProductImage {
+  id        String   @id @default(uuid())
+  productId String
+  url       String
+  sortOrder Int      @default(0)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model ProductVariant {
+  id        String   @id @default(uuid())
+  productId String
+  weight    String
+  price     Float
+  mrp       Float?
+  stock     Int      @default(0)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Coupon {
+  id         String   @id @default(uuid())
+  code       String   @unique
+  discount   Int
+  minimumAmount Float @default(0)
+  active     Boolean  @default(true)
+  usageCount Int      @default(0)
+  createdAt  DateTime @default(now())
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  orderNumber String      @unique @default(uuid()) // Auto-generate order number
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalAmount Float
+  status      OrderStatus @default(PENDING_WHATSAPP)
+  items       OrderItem[]
+  createdAt   DateTime    @default(now())
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  quantity  Int
+  price     Float
+}

@@ -1,0 +1,3 @@
+ALTER TABLE "User"
+  ADD COLUMN IF NOT EXISTS "emailVerificationOtpExpires" TIMESTAMP(3),
+  ADD COLUMN IF NOT EXISTS "emailVerificationOtpAttempts" INTEGER NOT NULL DEFAULT 0;
