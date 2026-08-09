@@ -15,8 +15,9 @@ import {
 import axios from "axios";
 import { useAuthStore } from "../store/useAuthStore";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"
+).replace(/\/+$/, "");
 
 export default function AuthModal({ isOpen, onClose, onSuccessLogin, resetToken }) {
   const [view, setView] = useState(() => (resetToken ? "reset" : "login")); // 'login' | 'register' | 'otp' | 'forgot' | 'reset'
