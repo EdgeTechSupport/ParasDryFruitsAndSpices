@@ -96,12 +96,27 @@ export default function AuthModal({ isOpen, onClose, onSuccessLogin, resetToken 
       if (onSuccessLogin) onSuccessLogin(res.data.user);
     } catch (err) {
       setLoading(false);
+
       if (err.response?.data?.requireVerification) {
         setView("otp");
       }
+
+      let message = "Unable to connect to the server.";
+
+      if (err.response) {
+        message =
+          err.response.data?.message ||
+          `Request failed with status ${err.response.status}.`;
+      } else if (err.request) {
+        message =
+          "Unable to reach the server. Please check your internet connection or try again.";
+      } else {
+        message = err.message || "Something went wrong.";
+      }
+
       setMsg({
         type: "error",
-        text: err.response?.data?.message || "Invalid email or password.",
+        text: message,
       });
     }
   };

@@ -147,7 +147,7 @@ export default function Home({ openAuthModal, openAdminDashboard }) {
             <div className="relative z-10 w-full max-w-lg rounded-2xl bg-white/5 p-3 border border-white/10 shadow-2xl backdrop-blur-md group transition-all duration-500 hover:border-[#D4AF37]/30">
               <div className="overflow-hidden rounded-xl bg-[#0F1A14]">
                 <img
-                  src="../../public/parashero.png" /* <<< REPLACE WITH YOUR IMAGE FILE PATH (e.g., from public folder) */
+                  src="/parashero.png" /* <<< REPLACE WITH YOUR IMAGE FILE PATH (e.g., from public folder) */
                   alt="Paras Dry Fruits and Spices Showcase"
                   className="w-full h-[360px] object-cover object-center transform transition-transform duration-700 ease-out group-hover:scale-105"
                 />
