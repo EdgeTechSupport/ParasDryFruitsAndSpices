@@ -9,7 +9,10 @@ const adminRoutes = require("./routes/adminRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 
 const app = express();
-const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173").split(",").map((origin) => origin.trim());
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.FRONTEND_URL, // Will set this in Render environment variables
+].filter(Boolean);
 app.use(cors({ origin: allowedOrigins, methods: ["GET", "POST", "PUT", "DELETE"], allowedHeaders: ["Content-Type", "Authorization"] }));
 app.use(express.json({ limit: "100kb" }));
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
