@@ -13,8 +13,18 @@ const allowedOrigins = [
   "http://localhost:5173",
   process.env.FRONTEND_URL, // Will set this in Render environment variables
 ].filter(Boolean);
-app.use(cors({ origin: allowedOrigins, methods: ["GET", "POST", "PUT", "DELETE"], allowedHeaders: ["Content-Type", "Authorization"] }));
+app.use(cors({ origin: allowedOrigins, methods: ["GET", "POST", "PUT", "DELETE", "PATCH"], allowedHeaders: ["Content-Type", "Authorization"] }));
 app.use(express.json({ limit: "100kb" }));
+
+app.use((req, res, next) => {
+  console.log("=================================");
+  console.log("REQUEST METHOD:", req.method);
+  console.log("REQUEST URL:", req.originalUrl);
+  console.log("REQUEST ORIGIN:", req.headers.origin);
+  console.log("=================================");
+  next();
+});
+
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // API Routes
@@ -22,6 +32,14 @@ app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/orders", orderRoutes);
+
+app.get("/api/test", (req, res) => {
+  res.json({
+    message: "API route is working",
+    method: req.method,
+    url: req.originalUrl,
+  });
+});
 
 app.get("/", (req, res) => {
   res.send("Paras Dry Fruits API Connected & Running");
