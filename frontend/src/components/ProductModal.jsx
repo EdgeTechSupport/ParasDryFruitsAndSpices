@@ -1,8 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { X, Star, ShoppingBag, ShieldCheck, Heart } from "lucide-react";
-import { useCartStore } from "../store/useCartStore";
-import { useWishlistStore } from "../store/useWishlistStore";
-import { useCurrencyStore } from "../store/useCurrencyStore";
 import {
   X,
   Star,
@@ -12,6 +8,9 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { useCartStore } from "../store/useCartStore";
+import { useWishlistStore } from "../store/useWishlistStore";
+import { useCurrencyStore } from "../store/useCurrencyStore";
 
 export default function ProductModal({ product, onClose }) {
   const { addToCart } = useCartStore();
