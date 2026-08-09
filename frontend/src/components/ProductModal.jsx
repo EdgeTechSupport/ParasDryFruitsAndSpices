@@ -73,11 +73,6 @@ export default function ProductModal({ product, onClose }) {
     weightOptions[0];
   const currentPrice = currentVariant.price;
   const currentMultiplier = product.price ? currentPrice / product.price : 1;
-  const images = product.images?.length
-    ? product.images.map((image) => image.url)
-    : product.imageUrl
-      ? [product.imageUrl]
-      : [];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
