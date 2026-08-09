@@ -13,6 +13,25 @@ import { useWishlistStore } from "../store/useWishlistStore";
 import { useCurrencyStore } from "../store/useCurrencyStore";
 import ProductModal from "./ProductModal";
 
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"
+).replace(/\/+$/, "");
+
+const getImageUrl = (url) => {
+  if (!url) return "";
+
+  if (
+    url.startsWith("http://") ||
+    url.startsWith("https://") ||
+    url.startsWith("data:") ||
+    url.startsWith("blob:")
+  ) {
+    return url;
+  }
+
+  return `${API_BASE_URL}/${url.replace(/^\/+/, "")}`;
+};
+
 export default function ProductCard({ product }) {
   const { addToCart } = useCartStore();
   const { toggleWishlist, isInWishlist } = useWishlistStore();
@@ -55,12 +74,11 @@ export default function ProductCard({ product }) {
   const currentMultiplier = product.price ? currentPrice / product.price : 1;
 
   // Use all uploaded images, with old imageUrl as fallback.
-  const images =
-    product.images?.length > 0
-      ? product.images.map((image) => image.url)
-      : product.imageUrl
-        ? [product.imageUrl]
-        : [];
+  const images = product.images?.length
+    ? product.images.map((image) => image.url)
+    : product.imageUrl
+      ? [product.imageUrl]
+      : [];
 
   const nextImage = (e) => {
     e.stopPropagation();

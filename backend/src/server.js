@@ -1,6 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-const path = require("path");
 require("dotenv").config();
 
 const authRoutes = require("./routes/authRoutes");
@@ -13,19 +12,14 @@ const allowedOrigins = [
   "http://localhost:5173",
   process.env.FRONTEND_URL, // Will set this in Render environment variables
 ].filter(Boolean);
-app.use(cors({ origin: allowedOrigins, methods: ["GET", "POST", "PUT", "DELETE", "PATCH"], allowedHeaders: ["Content-Type", "Authorization"] }));
+app.use(
+  cors({
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 app.use(express.json({ limit: "100kb" }));
-
-app.use((req, res, next) => {
-  console.log("=================================");
-  console.log("REQUEST METHOD:", req.method);
-  console.log("REQUEST URL:", req.originalUrl);
-  console.log("REQUEST ORIGIN:", req.headers.origin);
-  console.log("=================================");
-  next();
-});
-
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // API Routes
 app.use("/api/auth", authRoutes);
@@ -46,11 +40,35 @@ app.get("/", (req, res) => {
 });
 
 app.use((error, req, res, next) => {
-  if (error instanceof SyntaxError && "body" in error) return res.status(400).json({ message: "Invalid JSON request body." });
-  if (error.code === "LIMIT_FILE_SIZE") return res.status(400).json({ message: "Each image must be 5 MB or smaller." });
-  if (error.message === "Only image files can be uploaded.") return res.status(400).json({ message: error.message });
+  if (error instanceof SyntaxError && "body" in error) {
+    return res.status(400).json({
+      message: "Invalid JSON request body.",
+    });
+  }
+
+  if (error.code === "LIMIT_FILE_SIZE") {
+    return res.status(400).json({
+      message: "Each image must be 5 MB or smaller.",
+    });
+  }
+
+  if (error.code === "LIMIT_FILE_COUNT") {
+    return res.status(400).json({
+      message: "You can upload a maximum of 5 images.",
+    });
+  }
+
+  if (error.message === "Only image files can be uploaded.") {
+    return res.status(400).json({
+      message: error.message,
+    });
+  }
+
   console.error("Unhandled server error:", error);
-  res.status(500).json({ message: "An unexpected server error occurred." });
+
+  res.status(500).json({
+    message: "An unexpected server error occurred.",
+  });
 });
 
 const PORT = process.env.PORT || 5000;

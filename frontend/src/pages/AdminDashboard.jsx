@@ -27,6 +27,21 @@ const API_BASE_URL = (
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"
 ).replace(/\/+$/, "");
 
+const getImageUrl = (url) => {
+  if (!url) return "";
+
+  if (
+    url.startsWith("http://") ||
+    url.startsWith("https://") ||
+    url.startsWith("data:") ||
+    url.startsWith("blob:")
+  ) {
+    return url;
+  }
+
+  return `${API_BASE_URL}/${url.replace(/^\/+/, "")}`;
+};
+
 export default function AdminDashboard({ onBackToStore }) {
   const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'inventory' | 'users' | 'orders' | 'coupons'
   const [products, setProducts] = useState([]);
@@ -712,9 +727,9 @@ export default function AdminDashboard({ onBackToStore }) {
                       >
                         <div className="flex items-center gap-3">
                           <img
-                            src={p.imageUrl}
-                            alt=""
-                            className="w-8 h-8 rounded-lg object-cover"
+                            src={getImageUrl(p.imageUrl)}
+                            alt={p.title}
+                            className="w-12 h-12 rounded-xl object-cover border"
                           />
                           <span className="font-semibold text-sm text-gray-900">
                             {p.title}
@@ -1128,9 +1143,9 @@ export default function AdminDashboard({ onBackToStore }) {
                       <tr key={p.id} className="hover:bg-gray-50">
                         <td className="p-4 flex items-center gap-3">
                           <img
-                            src={p.imageUrl}
-                            alt=""
-                            className="w-12 h-12 rounded-xl object-cover border"
+                            src={getImageUrl(p.imageUrl)}
+                            alt={p.title}
+                            className="w-8 h-8 rounded-lg object-cover"
                           />
                           <div>
                             <span className="font-bold text-gray-900 block">

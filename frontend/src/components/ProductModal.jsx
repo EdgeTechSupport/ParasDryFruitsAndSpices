@@ -8,7 +8,9 @@ export default function ProductModal({ product, onClose }) {
   const { addToCart } = useCartStore();
   const { toggleWishlist, isInWishlist } = useWishlistStore();
   const { formatPrice } = useCurrencyStore();
-  const [selectedWeight, setSelectedWeight] = useState(product?.variants?.[0]?.weight || "500g");
+  const [selectedWeight, setSelectedWeight] = useState(
+    product?.variants?.[0]?.weight || "500g",
+  );
 
   if (!product) return null;
 
@@ -21,12 +23,29 @@ export default function ProductModal({ product, onClose }) {
   ];
 
   const weightOptions = product.variants?.length
-    ? product.variants.map((variant) => ({ id: variant.id, label: variant.weight, price: Number(variant.price), mrp: variant.mrp == null ? null : Number(variant.mrp), stock: variant.stock }))
-    : fallbackWeightOptions.map((option) => ({ ...option, price: Math.round(product.price * option.multiplier), mrp: null, stock: product.stock }));
-  const currentVariant = weightOptions.find((option) => option.label === selectedWeight) || weightOptions[0];
+    ? product.variants.map((variant) => ({
+        id: variant.id,
+        label: variant.weight,
+        price: Number(variant.price),
+        mrp: variant.mrp == null ? null : Number(variant.mrp),
+        stock: variant.stock,
+      }))
+    : fallbackWeightOptions.map((option) => ({
+        ...option,
+        price: Math.round(product.price * option.multiplier),
+        mrp: null,
+        stock: product.stock,
+      }));
+  const currentVariant =
+    weightOptions.find((option) => option.label === selectedWeight) ||
+    weightOptions[0];
   const currentPrice = currentVariant.price;
   const currentMultiplier = product.price ? currentPrice / product.price : 1;
-  const imageUrl = product.images?.[0]?.url || product.imageUrl;
+  const images = product.images?.length
+    ? product.images.map((image) => image.url)
+    : product.imageUrl
+      ? [product.imageUrl]
+      : [];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
@@ -42,7 +61,7 @@ export default function ProductModal({ product, onClose }) {
         {/* Product Image */}
         <div className="md:w-1/2 bg-gray-50 relative min-h-[250px]">
           <img
-            src={imageUrl}
+            src={images[0]}
             alt={product.title}
             className="w-full h-full object-cover"
           />
@@ -109,7 +128,20 @@ export default function ProductModal({ product, onClose }) {
                 <span className="text-2xl font-extrabold text-gray-900">
                   {formatPrice(currentPrice)}
                 </span>
-                {currentVariant.mrp > currentPrice && <div className="text-xs text-gray-400 mt-1">MRP <span className="line-through">{formatPrice(currentVariant.mrp)}</span> <span className="text-emerald-700 font-bold ml-1">{Math.round((1 - currentPrice / currentVariant.mrp) * 100)}% off</span></div>}
+                {currentVariant.mrp > currentPrice && (
+                  <div className="text-xs text-gray-400 mt-1">
+                    MRP{" "}
+                    <span className="line-through">
+                      {formatPrice(currentVariant.mrp)}
+                    </span>{" "}
+                    <span className="text-emerald-700 font-bold ml-1">
+                      {Math.round(
+                        (1 - currentPrice / currentVariant.mrp) * 100,
+                      )}
+                      % off
+                    </span>
+                  </div>
+                )}
               </div>
               <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">
                 In Stock & Ready to Ship
@@ -121,7 +153,12 @@ export default function ProductModal({ product, onClose }) {
           <div className="mt-6 flex gap-3 pt-4 border-t border-gray-100">
             <button
               onClick={() => {
-                addToCart(product, selectedWeight, currentMultiplier, currentVariant.id);
+                addToCart(
+                  product,
+                  selectedWeight,
+                  currentMultiplier,
+                  currentVariant.id,
+                );
                 onClose();
               }}
               className="flex-1 bg-[#2B4C3F] hover:bg-emerald-900 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 shadow transition"
