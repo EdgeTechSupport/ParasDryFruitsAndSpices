@@ -1,8 +1,17 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { X, Star, ShoppingBag, ShieldCheck, Heart } from "lucide-react";
 import { useCartStore } from "../store/useCartStore";
 import { useWishlistStore } from "../store/useWishlistStore";
 import { useCurrencyStore } from "../store/useCurrencyStore";
+import {
+  X,
+  Star,
+  ShoppingBag,
+  ShieldCheck,
+  Heart,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
 export default function ProductModal({ product, onClose }) {
   const { addToCart } = useCartStore();
@@ -11,6 +20,30 @@ export default function ProductModal({ product, onClose }) {
   const [selectedWeight, setSelectedWeight] = useState(
     product?.variants?.[0]?.weight || "500g",
   );
+
+  const [currentImage, setCurrentImage] = useState(0);
+
+  const images = product.images?.length
+    ? product.images.map((image) => image.url)
+    : product.imageUrl
+      ? [product.imageUrl]
+      : [];
+
+  const nextImage = () => {
+    setCurrentImage((current) =>
+      current === images.length - 1 ? 0 : current + 1,
+    );
+  };
+
+  const previousImage = () => {
+    setCurrentImage((current) =>
+      current === 0 ? images.length - 1 : current - 1,
+    );
+  };
+
+  useEffect(() => {
+    setCurrentImage(0);
+  }, [product?.id]);
 
   if (!product) return null;
 
@@ -59,16 +92,64 @@ export default function ProductModal({ product, onClose }) {
         </button>
 
         {/* Product Image */}
-        <div className="md:w-1/2 bg-gray-50 relative min-h-[250px]">
-          <img
-            src={images[0]}
-            alt={product.title}
-            className="w-full h-full object-cover"
-          />
+        <div className="md:w-1/2 bg-gray-50 relative min-h-[350px]">
+          {images.length > 0 ? (
+            <img
+              src={images[currentImage]}
+              alt={`${product.title} - image ${currentImage + 1}`}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-400">
+              No image available
+            </div>
+          )}
+
           {product.isOrganic && (
             <span className="absolute top-4 left-4 bg-[#2B4C3F] text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full flex items-center gap-1 shadow">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#D4AF37]" /> Organic
+              <ShieldCheck className="w-3.5 h-3.5 text-[#D4AF37]" />
+              Organic
             </span>
+          )}
+
+          {images.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={previousImage}
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow flex items-center justify-center text-gray-700 hover:bg-white"
+                aria-label="Previous image"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={nextImage}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow flex items-center justify-center text-gray-700 hover:bg-white"
+                aria-label="Next image"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs font-bold px-3 py-1 rounded-full">
+                {currentImage + 1} / {images.length}
+              </div>
+
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 translate-y-7 flex gap-1.5">
+                {images.map((_, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setCurrentImage(index)}
+                    className={`w-2 h-2 rounded-full ${
+                      index === currentImage ? "bg-white" : "bg-white/50"
+                    }`}
+                    aria-label={`View image ${index + 1}`}
+                  />
+                ))}
+              </div>
+            </>
           )}
         </div>
 

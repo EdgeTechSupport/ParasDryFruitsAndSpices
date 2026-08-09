@@ -73,6 +73,9 @@ export default function AdminDashboard({ onBackToStore }) {
   ]);
   const [imageFiles, setImageFiles] = useState([]);
 
+  const [existingImages, setExistingImages] = useState([]);
+  const [removedImageIds, setRemovedImageIds] = useState([]);
+
   const fileInputRef = useRef(null);
   const [isSavingProduct, setIsSavingProduct] = useState(false);
 
@@ -264,6 +267,11 @@ export default function AdminDashboard({ onBackToStore }) {
 
       payload.append("variants", JSON.stringify(variants));
 
+      payload.append(
+        "keepImageIds",
+        JSON.stringify(existingImages.map((image) => image.id)),
+      );
+
       imageFiles.forEach((file) => {
         payload.append("images", file);
       });
@@ -343,16 +351,18 @@ export default function AdminDashboard({ onBackToStore }) {
 
   const handleEditProduct = (product) => {
     setEditingProduct(product);
+
     setFormData({
       title: product.title,
       description: product.description || "",
       price: "",
       unit: "500g",
-      stock: 0,
-      imageUrl: "",
+      stock: product.stock ?? 0,
+      imageUrl: product.imageUrl || "",
       category: product.category || "dry-fruits",
       isOrganic: Boolean(product.isOrganic),
     });
+
     setVariants(
       product.variants?.length
         ? product.variants.map((variant) => ({
@@ -370,8 +380,41 @@ export default function AdminDashboard({ onBackToStore }) {
             },
           ],
     );
+
+    // Existing Supabase images
+    setExistingImages(
+      (product.images || [])
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((image) => ({
+          id: image.id,
+          url: image.url,
+          sortOrder: image.sortOrder,
+        })),
+    );
+
+    setRemovedImageIds([]);
     setImageFiles([]);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  const removeExistingImage = (imageId) => {
+    setExistingImages((current) =>
+      current.filter((image) => image.id !== imageId),
+    );
+
+    setRemovedImageIds((current) => [...current, imageId]);
+  };
+
+  const restoreExistingImage = (image) => {
+    setExistingImages((current) =>
+      [...current, image].sort((a, b) => a.sortOrder - b.sortOrder),
+    );
+
+    setRemovedImageIds((current) => current.filter((id) => id !== image.id));
   };
 
   const updateVariant = (index, field, value) => {
@@ -1020,8 +1063,70 @@ export default function AdminDashboard({ onBackToStore }) {
                 <div>
                   <label className="text-xs font-semibold text-gray-700 block mb-1">
                     Product images (up to 5)
-                    {editingProduct ? " — optional when editing" : ""}
+                    {editingProduct ? " — keep, remove or add images" : ""}
                   </label>
+
+                  {/* EXISTING SUPABASE IMAGES */}
+                  {editingProduct && existingImages.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-[11px] font-semibold text-gray-500 mb-2">
+                        Current images
+                      </p>
+
+                      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                        {existingImages.map((image) => (
+                          <div key={image.id} className="relative">
+                            <img
+                              src={image.url}
+                              alt="Current product"
+                              className="w-full aspect-square object-cover rounded-lg border"
+                            />
+
+                            <button
+                              type="button"
+                              onClick={() => removeExistingImage(image.id)}
+                              className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center shadow"
+                              aria-label="Remove existing image"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* NEW FILES */}
+                  {imageFiles.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-[11px] font-semibold text-emerald-700 mb-2">
+                        New images
+                      </p>
+
+                      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                        {imageFiles.map((file, index) => (
+                          <div
+                            key={`${file.name}-${file.size}-${index}`}
+                            className="relative"
+                          >
+                            <img
+                              src={URL.createObjectURL(file)}
+                              alt={`New ${index + 1}`}
+                              className="w-full aspect-square object-cover rounded-lg border"
+                            />
+
+                            <button
+                              type="button"
+                              onClick={() => removeSelectedImage(index)}
+                              className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center shadow"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <input
                     ref={fileInputRef}
@@ -1035,49 +1140,13 @@ export default function AdminDashboard({ onBackToStore }) {
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full flex cursor-pointer items-center justify-center gap-2 border-2 border-dashed border-gray-300 rounded-xl p-4 text-xs font-semibold text-gray-600 hover:border-[#2B4C3F] hover:text-[#2B4C3F] active:bg-gray-50"
+                    className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-gray-300 rounded-xl p-4 text-xs font-semibold text-gray-600 hover:border-[#2B4C3F] hover:text-[#2B4C3F]"
                   >
                     <ImagePlus className="w-5 h-5" />
-                    Upload images from device
+                    {editingProduct
+                      ? "Add more images"
+                      : "Upload images from device"}
                   </button>
-
-                  <p className="text-[10px] text-gray-400 mt-1">
-                    JPG, PNG, WEBP or other image formats. Maximum 5 images, 5
-                    MB each.
-                  </p>
-
-                  {imageFiles.length > 0 && (
-                    <>
-                      <p className="text-xs font-semibold text-emerald-700 mt-2">
-                        {imageFiles.length} image
-                        {imageFiles.length > 1 ? "s" : ""} selected
-                      </p>
-
-                      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-2">
-                        {imageFiles.map((file, index) => (
-                          <div
-                            key={`${file.name}-${file.size}-${index}`}
-                            className="relative"
-                          >
-                            <img
-                              src={URL.createObjectURL(file)}
-                              alt={`Selected ${index + 1}`}
-                              className="w-full aspect-square object-cover rounded-lg border"
-                            />
-
-                            <button
-                              type="button"
-                              onClick={() => removeSelectedImage(index)}
-                              className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center shadow"
-                              aria-label="Remove image"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  )}
                 </div>
 
                 <button
